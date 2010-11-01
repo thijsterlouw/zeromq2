@@ -75,6 +75,7 @@ libzmq_la_SOURCES = \
     encoder.hpp \
     epoll.hpp \
     err.hpp \
+    event.hpp \
     fd.hpp \
     forwarder.hpp \
     fq.hpp \
@@ -143,6 +144,7 @@ libzmq_la_SOURCES = \
     encoder.cpp \
     epoll.cpp \
     err.cpp \
+    event.cpp \
     forwarder.cpp \
     fq.cpp \
     io_object.cpp \

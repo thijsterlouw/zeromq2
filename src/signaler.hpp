@@ -20,13 +20,12 @@
 #ifndef __ZMQ_SIGNALER_HPP_INCLUDED__
 #define __ZMQ_SIGNALER_HPP_INCLUDED__
 
-#include <stddef.h>
+#include <deque>
 
-#include "platform.hpp"
-#include "fd.hpp"
-#include "stdint.hpp"
-#include "config.hpp"
+#include "event.hpp"
 #include "command.hpp"
+#include "config.hpp"
+#include "mutex.hpp"
 
 namespace zmq
 {
@@ -44,22 +43,18 @@ namespace zmq
         
     private:
 
-#if defined ZMQ_HAVE_OPENVMS
+        //  Event used to signal availability of commands on the reader side.
+        event_t event;
 
-        //  Whilst OpenVMS supports socketpair - it maps to AF_INET only.
-        //  Further, it does not set the socket options TCP_NODELAY and
-        //  TCP_NODELACK which can lead to performance problems. We'll
-        //  overload the socketpair function for this class.
-        //
-        //  The bug will be fixed in V5.6 ECO4 and beyond.  In the
-        //  meantime, we'll create the socket pair manually.
-        static int socketpair (int domain_, int type_, int protocol_,
-            int sv_ [2]);
-#endif
+        //  If true, the underlying event is signaled.
+        bool signaled;
 
-        //  Write & read end of the socketpair.
-        fd_t w;
-        fd_t r;
+        //  The queue of commands.
+        typedef std::deque <command_t> queue_t;
+        queue_t queue;
+
+        //  Synchronisation of access to the queue.
+        mutex_t sync;
 
         //  Disable copying of fd_signeler object.
         signaler_t (const signaler_t&);

@@ -206,6 +206,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\event.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\forwarder.cpp"
 				>
 			</File>
@@ -445,6 +449,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\err.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\event.hpp"
 				>
 			</File>
 			<File
