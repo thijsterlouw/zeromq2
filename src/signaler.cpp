@@ -19,8 +19,7 @@
 
 #include "signaler.hpp"
 
-zmq::signaler_t::signaler_t () :
-    signaled (false)
+zmq::signaler_t::signaler_t ()
 {
 }
 
@@ -37,10 +36,7 @@ void zmq::signaler_t::send (const command_t &cmd_)
 {
     sync.lock ();
     queue.push_back (cmd_);
-    if (!signaled) {
-        signaled = true;
-        event.set ();
-    }
+    event.set ();
     sync.unlock ();
 }
 
@@ -54,17 +50,17 @@ int zmq::signaler_t::recv (command_t *cmd_, bool block_)
             return -1;
         }
         sync.unlock ();
-        event.wait ();
+        int rc = event.wait ();
+        if (rc == -1 && errno == EINTR)
+            return -1;
+        errno_assert (rc == 0);
         sync.lock ();
         zmq_assert (!queue.empty ());
     }
-    zmq_assert (signaled);
     *cmd_ = queue.front ();
     queue.pop_front ();
-    if (queue.empty ()) {
-        signaled = false;
+    if (queue.empty ())
         event.reset ();
-    }
     sync.unlock ();
     return 0;
 }

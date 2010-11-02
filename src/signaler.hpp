@@ -46,9 +46,6 @@ namespace zmq
         //  Event used to signal availability of commands on the reader side.
         event_t event;
 
-        //  If true, the underlying event is signaled.
-        bool signaled;
-
         //  The queue of commands.
         typedef std::deque <command_t> queue_t;
         queue_t queue;

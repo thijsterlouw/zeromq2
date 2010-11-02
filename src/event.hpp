@@ -22,6 +22,7 @@
 
 #include "platform.hpp"
 #include "fd.hpp"
+#include "atomic_counter.hpp"
 
 namespace zmq
 {
@@ -35,13 +36,14 @@ namespace zmq
 
         fd_t get_fd ();
 
-        //  Signal the event.
-        int set ();
+        //  Signal the event. File descriptor shall report POLLIN.
+        void set ();
 
-        //  Reset the event.
-        int reset ();
+        //  Reset the event. File descriptor shall not report POLLIN.
+        void reset ();
 
-        //  Wait till event is signaled.
+        //  Wait till event is signaled. Returns -1 and EINTR if the call was
+        //  interrupted by a signal.  Does not affect file descriptor state.
         int wait ();
 
     private:
@@ -50,11 +52,15 @@ namespace zmq
         //  Associated eventfd file decriptor.
         fd_t e;
 #else
-        static int make_socketpair (fd_t *r_, fd_t *w_);
+        //  Atomic counter to ensure event methods are idempotent.
+        atomic_counter_t signaled;
 
         //  Write & read end of the socketpair.
         fd_t w;
         fd_t r;
+
+        //  Platform-dependent function to create a socketpair.
+        static int make_socketpair (fd_t *r_, fd_t *w_);
 #endif
 
         //  Disable copying of the object.

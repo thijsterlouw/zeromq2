@@ -54,22 +54,24 @@ zmq::fd_t zmq::event_t::get_fd ()
     return e;
 }
 
-int zmq::event_t::set ()
+void zmq::event_t::set ()
 {
     uint64_t val = 1;
-    ssize_t nbytes = write (e, &val, sizeof (val));
-    if (nbytes == -1 && errno == EINTR)
-        return -1;
+    ssize_t nbytes;
+    do {
+        nbytes = write (e, &val, sizeof (val));
+    } while (nbytes == -1 && errno == EINTR);
     errno_assert (nbytes != -1);
     zmq_assert (nbytes == sizeof (val));
 }
 
-int zmq::event_t::reset ()
+void zmq::event_t::reset ()
 {
     uint64_t val;
-    ssize_t nbytes = read (e, &val, sizeof (val));
-    if (nbytes == -1 && errno == EINTR)
-        return -1;
+    ssize_t nbytes;
+    do {
+        nbytes = read (e, &val, sizeof (val));
+    } while (nbytes == -1 && errno == EINTR);
     errno_assert (nbytes != -1);
     zmq_assert (nbytes == sizeof (val));
     zmq_assert (val == 1);
@@ -77,10 +79,10 @@ int zmq::event_t::reset ()
 
 int zmq::event_t::wait ()
 {
-    int rc = reset ();
-    if (rc == -1)
-        return rc;
-    return set ();
+    //  FIXME This implementation ignores EINTR for now.
+    reset ();
+    set ();
+    return 0;
 }
 
 #else // ZMQ_HAVE_EVENTFD
@@ -122,42 +124,44 @@ zmq::fd_t zmq::event_t::get_fd ()
     return r;
 }
 
-int zmq::event_t::set ()
+void zmq::event_t::set ()
 {
+    if (signaled.get ())
+        return;
     char c = 0;
-    int nbytes = ::send (w, &c, sizeof (char), 0);
+    int nbytes;
+    do {
+        nbytes = ::send (w, &c, sizeof (char), 0);
 #if defined ZMQ_HAVE_WINDOWS
-    if (nbytes == SOCKET_ERROR && WSAGetLastError() == WSAEINTR) {
-        errno = EINTR;
-        return -1;
-    }
+    } while (nbytes == SOCKET_ERROR && WSAGetLastError() == WSAEINTR);
     wsa_assert (nbytes != SOCKET_ERROR);
 #else
-    if (nbytes == -1 && errno == EINTR)
-        return -1;
+    } while (nbytes == -1 && errno == EINTR);
     errno_assert (nbytes != -1);
 #endif
     zmq_assert (nbytes == sizeof (char));
-    return 0;
+    signaled.add (1);
+    zmq_assert (signaled.get () == 1);
 }
 
-int zmq::event_t::reset ()
+void zmq::event_t::reset ()
 {
+    if (signaled.get () == 0)
+        return;
     char c;
-    int nbytes = ::recv (r, &c, sizeof (char), 0);
+    int nbytes;
+    do {
+        nbytes = ::recv (r, &c, sizeof (char), 0);
 #if defined ZMQ_HAVE_WINDOWS
-    if (nbytes == SOCKET_ERROR && WSAGetLastError() == WSAEINTR) {
-        errno = EINTR;
-        return -1;
-    }
+    } while (nbytes == SOCKET_ERROR && WSAGetLastError() == WSAEINTR);
     wsa_assert (nbytes != SOCKET_ERROR);
 #else
-    if (nbytes == -1 && errno == EINTR)
-        return -1;
+    } while (nbytes == -1 && errno == EINTR);
     errno_assert (nbytes != -1);
 #endif
     zmq_assert (nbytes == sizeof (char));
-    return 0;
+    signaled.sub (1);
+    zmq_assert (signaled.get () == 0);
 }
 
 int zmq::event_t::wait ()
