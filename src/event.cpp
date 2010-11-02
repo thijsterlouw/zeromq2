@@ -36,11 +36,14 @@
 
 #include <sys/eventfd.h>
 
-zmq::event_t::event_t ()
+zmq::event_t::event_t (bool set_)
 {
     // Create eventfd object.
     e = eventfd (0, 0);
     errno_assert (e != -1);
+    // Signal event by default if asked to.
+    if (set_)
+        set ();
 }
 
 zmq::event_t::~event_t ()
@@ -87,7 +90,7 @@ int zmq::event_t::wait ()
 
 #else // ZMQ_HAVE_EVENTFD
 
-zmq::event_t::event_t ()
+zmq::event_t::event_t (bool set_)
 {
     //  Create the socketpair for signalling.
     int rc = make_socketpair (&r, &w);
@@ -103,6 +106,10 @@ zmq::event_t::event_t ()
     rc = setsockopt (w, SOL_SOCKET, SO_SNDBUF, &sndbuf, sizeof (sndbuf));
     errno_assert (rc == 0);
 #endif
+
+    //  Signal event by default if asked to.
+    if (set_)
+        set ();
 }
 
 zmq::event_t::~event_t ()
@@ -126,8 +133,9 @@ zmq::fd_t zmq::event_t::get_fd ()
 
 void zmq::event_t::set ()
 {
-    if (signaled.get ())
+    if (signaled.get () == 1)
         return;
+    zmq_assert (signaled.get () == 0);
     char c = 0;
     int nbytes;
     do {
@@ -148,6 +156,7 @@ void zmq::event_t::reset ()
 {
     if (signaled.get () == 0)
         return;
+    zmq_assert (signaled.get() == 1);
     char c;
     int nbytes;
     do {

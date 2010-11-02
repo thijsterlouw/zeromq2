@@ -20,12 +20,11 @@
 #ifndef __ZMQ_SIGNALER_HPP_INCLUDED__
 #define __ZMQ_SIGNALER_HPP_INCLUDED__
 
-#include <deque>
-
 #include "event.hpp"
 #include "command.hpp"
 #include "config.hpp"
 #include "mutex.hpp"
+#include "ypipe.hpp"
 
 namespace zmq
 {
@@ -47,13 +46,13 @@ namespace zmq
         event_t event;
 
         //  The queue of commands.
-        typedef std::deque <command_t> queue_t;
+        typedef ypipe_t <command_t, 16> queue_t;
         queue_t queue;
 
-        //  Synchronisation of access to the queue.
+        //  Synchronisation of access to the queue for the sending side.
         mutex_t sync;
 
-        //  Disable copying of fd_signeler object.
+        //  Disable copying of fd_signaler object.
         signaler_t (const signaler_t&);
         void operator = (const signaler_t&);
     };

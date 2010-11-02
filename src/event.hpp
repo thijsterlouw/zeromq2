@@ -31,7 +31,7 @@ namespace zmq
     {
     public:
 
-        event_t ();
+        event_t (bool set_ = false);
         ~event_t ();
 
         fd_t get_fd ();
