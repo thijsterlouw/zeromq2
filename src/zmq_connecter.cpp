@@ -152,7 +152,7 @@ int zmq::zmq_connecter_t::get_new_reconnect_ivl ()
     //  Only change the current reconnect interval 
     //  if the maximum reconnect interval was set and
     //  if it's larger than the reconnect interval
-    if (options.reconnect_ivl_max >= 0 && 
+    if (options.reconnect_ivl_max > 0 && 
         options.reconnect_ivl_max > options.reconnect_ivl) {
 
         //  Calculate the next interval
