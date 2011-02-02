@@ -146,12 +146,12 @@ int zmq::zmq_connecter_t::get_new_reconnect_ivl ()
     int pid = (int) getpid ();
 #endif
 
-    //  The new interval is the current interval + random value
-    int this_interval = current_reconnect_ivl + ((pid * 13) % options.reconnect_ivl);
+    //  The new interval is the current interval + random value.
+    int this_interval = current_reconnect_ivl +
+        ((pid * 13) % options.reconnect_ivl);
 
-    //  Only change the current reconnect interval 
-    //  if the maximum reconnect interval was set and
-    //  if it's larger than the reconnect interval
+    //  Only change the current reconnect interval  if the maximum reconnect
+    //  interval was set and if it's larger than the reconnect interval.
     if (options.reconnect_ivl_max > 0 && 
         options.reconnect_ivl_max > options.reconnect_ivl) {
 

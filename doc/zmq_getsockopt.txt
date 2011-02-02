@@ -264,8 +264,8 @@ Applicable socket types:: all
 
 ZMQ_RECONNECT_IVL: Retrieve reconnection interval
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The 'ZMQ_RECONNECT_IVL' option shall retrieve the reconnection interval for the
-specified 'socket'.  The reconnection interval is the maximum period 0MQ shall
+The 'ZMQ_RECONNECT_IVL' option shall retrieve the initial reconnection interval
+for the specified 'socket'.  The reconnection interval is the period 0MQ shall
 wait between attempts to reconnect disconnected peers when using
 connection-oriented transports.
 
