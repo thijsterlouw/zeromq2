@@ -184,6 +184,14 @@ namespace zmq
             assert (rc == 0);
         }
 
+        //  Be careful with this method, it's probably only useful
+        //  for using the C api together with an existing C++ api.
+        //  Normally you should never need to use this.
+        inline void *getRawPointer ()
+        {
+            return ptr;
+        }
+        
     private:
 
         void *ptr;
